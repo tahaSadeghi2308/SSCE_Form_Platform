@@ -143,7 +143,6 @@
         });
     }
 
-    // افزودن عضو جدید
     memberForm.addEventListener("submit", function (e) {
         e.preventDefault();
         hideFormError();
@@ -177,7 +176,6 @@
             });
     });
 
-    // کلیک روی دکمه‌های داخل جدول (ویرایش / حذف / ذخیره / انصراف)
     tbody.addEventListener("click", function (e) {
         var btn = e.target.closest("button[data-action]");
         if (!btn) return;
@@ -224,7 +222,6 @@
         }
     });
 
-    // مودال خلاصه
     function openModal() {
         if (members.length < 1) {
             window.alert("برای مشاهده خلاصه، حداقل باید یک عضو ثبت کرده باشید.");
@@ -245,7 +242,6 @@
         if (e.target === summaryModal) closeModal();
     });
 
-    // ثبت نهایی
     finalSubmitBtn.addEventListener("click", function () {
         submitError.hidden = true;
         finalSubmitBtn.disabled = true;
