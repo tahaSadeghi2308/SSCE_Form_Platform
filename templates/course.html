@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}نام درس{% endblock %}
+{% block content %}
+<main class="form-page">
+    <div class="form-card">
+        {% include "_stepper.html" %}
+
+        <h1 class="form-title">نام درسی که TA آن بوده‌اید</h1>
+        <p class="form-hint">این فیلد الزامی است.</p>
+
+        <form method="POST" novalidate>
+            <div class="field {% if error %}field-error{% endif %}">
+                <label for="course_name">نام درس</label>
+                <input
+                    type="text"
+                    id="course_name"
+                    name="course_name"
+                    value="{{ value }}"
+                    placeholder="مثال: مبانی کامپیوتر و برنامه‌سازی"
+                    autofocus
+                    required
+                >
+                {% if error %}<p class="error-text">{{ error }}</p>{% endif %}
+            </div>
+
+            <div class="form-actions">
+                <a href="{{ url_for('welcome') }}" class="btn btn-ghost">بازگشت</a>
+                <button type="submit" class="btn btn-primary">مرحله بعد ‹</button>
+            </div>
+        </form>
+    </div>
+</main>
+{% endblock %}

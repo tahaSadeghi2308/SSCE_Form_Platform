@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}{{ site_title }}{% endblock %}
+{% block content %}
+<main class="welcome-hero">
+    <div class="welcome-card">
+        <div class="logo-row">
+            <img src="{{ url_for('static', filename='images/uni.png') }}" alt="لوگوی اول" class="logo-badge">
+            <span class="logo-divider"></span>
+            <img src="{{ url_for('static', filename='images/soci.png') }}" alt="لوگوی دوم" class="logo-badge">
+        </div>
+
+        <p class="eyebrow">فرم ثبت اطلاعات</p>
+        <h1>{{ site_title }}</h1>
+        <p class="welcome-text">
+            به سامانه‌ی ثبت اطلاعات دستیاران آموزشی خوش آمدید.
+            در چند مرحله‌ی کوتاه، نام درس، نام استاد و اعضای تیم‌تان را
+            ثبت می‌کنید و در پایان فایل نهایی به‌صورت خودکار برای بررسی
+            ارسال می‌شود.
+        </p>
+
+        <a href="{{ url_for('course') }}" class="btn btn-primary btn-lg">
+            شروع ثبت‌نام
+            <span class="btn-arrow" aria-hidden="true">‹</span>
+        </a>
+    </div>
+</main>
+{% endblock %}

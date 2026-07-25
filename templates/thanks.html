@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}ثبت با موفقیت انجام شد{% endblock %}
+{% block content %}
+<main class="welcome-hero">
+    <div class="welcome-card thanks-card">
+        <div class="thanks-stamp">✓</div>
+        <h1>از ثبت اطلاعات شما سپاسگزاریم</h1>
+        <p class="welcome-text">
+            اطلاعات شما با موفقیت دریافت و ارسال شد. دیگر نیازی به کار
+            بیشتری نیست؛ در صورت نیاز به تغییر اطلاعات می‌توانید یک ثبت
+            جدید را از ابتدا شروع کنید.
+        </p>
+
+        <form method="POST" action="{{ url_for('start_over') }}">
+            <button type="submit" class="btn btn-primary btn-lg">بازگشت به صفحه اصلی</button>
+        </form>
+    </div>
+</main>
+{% endblock %}

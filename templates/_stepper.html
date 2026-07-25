@@ -1,0 +1,10 @@
+<ol class="stepper" aria-label="مراحل ثبت‌نام">
+    {% set names = ["نام درس", "نام استاد", "اعضای تیم"] %}
+    {% for i in range(1, total_steps + 1) %}
+    <li class="stamp {% if i < step %}stamp-done{% elif i == step %}stamp-active{% endif %}">
+        <span class="stamp-circle">{{ i }}</span>
+        <span class="stamp-label">{{ names[i-1] }}</span>
+    </li>
+    {% if not loop.last %}<li class="stamp-track" aria-hidden="true"></li>{% endif %}
+    {% endfor %}
+</ol>

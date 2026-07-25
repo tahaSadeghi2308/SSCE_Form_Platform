@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+{% block title %}اعضای تیم{% endblock %}
+{% block content %}
+<main class="form-page">
+    <div class="form-card form-card-wide">
+        {% include "_stepper.html" %}
+
+        <h1 class="form-title">اعضای تیم و سمت‌شان</h1>
+        <p class="form-hint">حداقل یک عضو باید ثبت شود. هر تعداد عضو که نیاز دارید اضافه کنید.</p>
+
+        <form id="member-form" class="member-form" novalidate>
+            <div class="field field-name">
+                <label for="member_name">نام عضو</label>
+                <input type="text" id="member_name" name="member_name" placeholder="نام و نام‌خانوادگی" required>
+            </div>
+            <div class="field field-role">
+                <label for="member_role">سمت</label>
+                <select id="member_role" name="member_role" required>
+                    <option value="" disabled selected>انتخاب کنید</option>
+                    {% for role in roles %}
+                    <option value="{{ role }}">{{ role }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="field field-submit">
+                <button type="submit" class="btn btn-primary" id="add-member-btn">+ افزودن عضو</button>
+            </div>
+        </form>
+        <p class="error-text" id="member-form-error" hidden></p>
+
+        <div class="table-wrap" id="table-wrap">
+            <table class="member-table">
+                <thead>
+                    <tr>
+                        <th class="col-index">#</th>
+                        <th>نام عضو</th>
+                        <th>سمت</th>
+                        <th class="col-actions">عملیات</th>
+                    </tr>
+                </thead>
+                <tbody id="member-tbody">
+                    <!-- با جاوااسکریپت پر می‌شود -->
+                </tbody>
+            </table>
+            <p class="empty-state" id="empty-state" hidden>هنوز عضوی ثبت نشده است.</p>
+        </div>
+
+        <div class="form-actions">
+            <a href="{{ url_for('professor') }}" class="btn btn-ghost">بازگشت</a>
+            <button type="button" class="btn btn-outline" id="open-summary-btn">مشاهده خلاصه</button>
+        </div>
+    </div>
+</main>
+
+<!-- مودال خلاصه اطلاعات و ثبت نهایی -->
+<div class="modal-overlay" id="summary-modal" hidden>
+    <div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="summary-title">
+        <button type="button" class="modal-close" id="close-summary-btn" aria-label="بستن">×</button>
+        <h2 id="summary-title">خلاصه اطلاعات ثبتی</h2>
+
+        <dl class="summary-list">
+            <dt>نام درس</dt><dd>{{ course }}</dd>
+            <dt>نام استاد</dt><dd>{{ professor }}</dd>
+        </dl>
+
+        <p class="summary-members-title">اعضای تیم</p>
+        <div class="table-wrap table-wrap-modal">
+            <table class="member-table">
+                <thead>
+                    <tr><th class="col-index">#</th><th>نام عضو</th><th>سمت</th></tr>
+                </thead>
+                <tbody id="summary-tbody"></tbody>
+            </table>
+        </div>
+
+        <p class="error-text" id="submit-error" hidden></p>
+
+        <div class="form-actions">
+            <button type="button" class="btn btn-ghost" id="cancel-summary-btn">ویرایش مجدد</button>
+            <button type="button" class="btn btn-primary" id="final-submit-btn">ثبت نهایی و ارسال</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    window.__TEAM_DATA__ = {
+        members: {{ members | tojson }},
+        roles: {{ roles | tojson }},
+        submitUrl: "{{ url_for('submit') }}",
+        thanksUrl: "{{ url_for('thanks') }}",
+        membersApiUrl: "{{ url_for('add_member') }}"
+    };
+</script>
+<script src="{{ url_for('static', filename='js/team.js') }}"></script>
+{% endblock %}
