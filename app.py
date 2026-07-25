@@ -4,15 +4,15 @@ import io
 import functools
 from datetime import datetime
 
-import requests
 from flask import (
     Flask, render_template, request, redirect,
-    url_for, session, jsonify, abort
+    url_for, session, jsonify
 )
 from openpyxl import Workbook
 from openpyxl.styles import Font, Alignment, PatternFill
 
 import config
+import bale_client
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = config.SECRET_KEY
@@ -30,12 +30,6 @@ def has_submitted():
 
 
 def require_step(check_fn, redirect_to):
-    """
-    دکوریتوری که قبل از اجرای یک route بررسی می‌کند آیا مرحله‌ی
-    پیش‌نیاز آن تکمیل شده یا نه. اگر نشده باشد کاربر را به مرحله‌ی
-    درستی که باید تکمیل کند هدایت می‌کند، نه اینکه فقط خطا بدهد؛
-    این‌طور کاربر هیچ‌وقت در یک بن‌بست گیر نمی‌افتد.
-    """
     def decorator(view_func):
         @functools.wraps(view_func)
         def wrapped(*args, **kwargs):
@@ -212,30 +206,6 @@ def build_xlsx(course_name, professor_name, members):
     buffer.seek(0)
     return buffer
 
-
-def send_to_telegram(file_buffer, filename, caption):
-    if "PUT-YOUR" in config.BALE_BOT_TOKEN or "PUT-YOUR" in str(config.BALE_CHAT_ID):
-        raise RuntimeError(
-            "توکن بات یا شناسه چت بله تنظیم نشده است. "
-            "لطفاً فایل config.py را تکمیل کنید."
-        )
-
-    url = f"https://tapi.bale.ai/bot{config.BALE_BOT_TOKEN}/sendDocument"
-    files = {
-        "document": (
-            filename,
-            file_buffer,
-            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        )
-    }
-    data = {"chat_id": config.BALE_CHAT_ID, "caption": caption}
-    resp = requests.post(url, data=data, files=files, timeout=20)
-    payload = resp.json()
-    if not payload.get("ok"):
-        raise RuntimeError(payload.get("description", "خطای نامشخص از سمت بله"))
-    return payload
-
-
 @app.route("/submit", methods=["POST"])
 @require_professor
 def submit():
@@ -253,7 +223,7 @@ def submit():
 
     try:
         xlsx_buffer = build_xlsx(course_name, professor_name, members)
-        send_to_telegram(xlsx_buffer, filename, caption)
+        bale_client.send_document(xlsx_buffer, filename, caption)
     except Exception as exc:
         return jsonify(ok=False, error=f"ارسال اطلاعات با خطا مواجه شد: {exc}"), 502
 
@@ -266,11 +236,10 @@ def submit():
 def thanks():
     return render_template("thanks.html")
 
-
 @app.route("/start-over", methods=["POST"])
 def start_over():
     session.clear()
     return redirect(url_for("welcome"))
 
 if __name__ == "__main__":
-    app.run(debug=False, host="0.0.0.0", port=3225)
+    app.run(debug=True, host="0.0.0.0", port=3225, threaded=True)
