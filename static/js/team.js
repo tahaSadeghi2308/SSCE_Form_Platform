@@ -6,19 +6,12 @@
 
     var tbody = document.getElementById("member-tbody");
     var emptyState = document.getElementById("empty-state");
-    var summaryTbody = document.getElementById("summary-tbody");
     var memberForm = document.getElementById("member-form");
     var nameInput = document.getElementById("member_name");
     var roleSelect = document.getElementById("member_role");
     var formError = document.getElementById("member-form-error");
     var addBtn = document.getElementById("add-member-btn");
-
-    var openSummaryBtn = document.getElementById("open-summary-btn");
-    var closeSummaryBtn = document.getElementById("close-summary-btn");
-    var cancelSummaryBtn = document.getElementById("cancel-summary-btn");
-    var summaryModal = document.getElementById("summary-modal");
-    var finalSubmitBtn = document.getElementById("final-submit-btn");
-    var submitError = document.getElementById("submit-error");
+    var nextStepBtn = document.getElementById("next-step-btn");
 
     var editingId = null;
 
@@ -103,28 +96,6 @@
             }
 
             tbody.appendChild(tr);
-        });
-    }
-
-    function renderSummary() {
-        summaryTbody.innerHTML = "";
-        members.forEach(function (m, idx) {
-            var tr = document.createElement("tr");
-
-            var indexCell = document.createElement("td");
-            indexCell.className = "col-index";
-            indexCell.textContent = String(idx + 1);
-
-            var nameCell = document.createElement("td");
-            nameCell.textContent = m.name;
-
-            var roleCell = document.createElement("td");
-            roleCell.textContent = m.role;
-
-            tr.appendChild(indexCell);
-            tr.appendChild(nameCell);
-            tr.appendChild(roleCell);
-            summaryTbody.appendChild(tr);
         });
     }
 
@@ -222,49 +193,11 @@
         }
     });
 
-    function openModal() {
+    nextStepBtn.addEventListener("click", function (e) {
         if (members.length < 1) {
-            window.alert("برای مشاهده خلاصه، حداقل باید یک عضو ثبت کرده باشید.");
-            return;
+            e.preventDefault();
+            window.alert("لطفاً پیش از ادامه، حداقل یک عضو تیم ثبت کنید.");
         }
-        renderSummary();
-        submitError.hidden = true;
-        summaryModal.hidden = false;
-    }
-    function closeModal() {
-        summaryModal.hidden = true;
-    }
-
-    openSummaryBtn.addEventListener("click", openModal);
-    closeSummaryBtn.addEventListener("click", closeModal);
-    cancelSummaryBtn.addEventListener("click", closeModal);
-    summaryModal.addEventListener("click", function (e) {
-        if (e.target === summaryModal) closeModal();
-    });
-
-    finalSubmitBtn.addEventListener("click", function () {
-        submitError.hidden = true;
-        finalSubmitBtn.disabled = true;
-        finalSubmitBtn.textContent = "در حال ارسال...";
-
-        fetch(DATA.submitUrl, { method: "POST" })
-            .then(function (res) {
-                return res.json().then(function (data) {
-                    if (!res.ok || !data.ok) {
-                        throw new Error(data.error || "ارسال اطلاعات با خطا مواجه شد.");
-                    }
-                    return data;
-                });
-            })
-            .then(function () {
-                window.location.href = DATA.thanksUrl;
-            })
-            .catch(function (err) {
-                submitError.textContent = err.message;
-                submitError.hidden = false;
-                finalSubmitBtn.disabled = false;
-                finalSubmitBtn.textContent = "ثبت نهایی و ارسال";
-            });
     });
 
     render();

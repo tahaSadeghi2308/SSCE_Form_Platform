@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block title %}بازبینی نهایی{% endblock %}
+{% block content %}
+<main class="form-page">
+    <div class="form-card form-card-wide">
+        <h1 class="form-title">بازبینی نهایی اطلاعات</h1>
+        <p class="form-hint">پیش از ارسال نهایی، اطلاعات زیر را بررسی کنید. در صورت نیاز به تغییر، روی «ویرایش» بزنید.</p>
+
+        <dl class="summary-list summary-list-wide">
+            <dt>نام درس</dt>
+            <dd>{{ course }} <a href="{{ url_for('course') }}" class="edit-link">ویرایش</a></dd>
+
+            <dt>نام استاد</dt>
+            <dd>{{ professor }} <a href="{{ url_for('professor') }}" class="edit-link">ویرایش</a></dd>
+
+            <dt>آیدی تلگرام سرپرست</dt>
+            <dd dir="ltr" class="ltr-value">{{ leader_telegram_id }} <a href="{{ url_for('leader') }}" class="edit-link">ویرایش</a></dd>
+        </dl>
+
+        <div class="summary-members-header">
+            <p class="summary-members-title">اعضای تیم</p>
+            <a href="{{ url_for('team') }}" class="edit-link">ویرایش اعضا</a>
+        </div>
+
+        <div class="table-wrap">
+            <table class="member-table">
+                <thead>
+                    <tr><th class="col-index">#</th><th>نام عضو</th><th>سمت</th></tr>
+                </thead>
+                <tbody>
+                    {% for m in members %}
+                    <tr>
+                        <td class="col-index">{{ loop.index }}</td>
+                        <td>{{ m.name }}</td>
+                        <td>{{ m.role }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <p class="error-text" id="submit-error" hidden></p>
+
+        <div class="form-actions">
+            <a href="{{ url_for('leader') }}" class="btn btn-ghost">بازگشت</a>
+            <button type="button" class="btn btn-primary" id="final-submit-btn">تایید و ارسال نهایی</button>
+        </div>
+    </div>
+</main>
+
+<script>
+    window.__SUMMARY_DATA__ = {
+        submitUrl: "{{ url_for('submit') }}",
+        thanksUrl: "{{ url_for('thanks') }}"
+    };
+</script>
+<script src="{{ url_for('static', filename='js/summary.js') }}"></script>
+{% endblock %}

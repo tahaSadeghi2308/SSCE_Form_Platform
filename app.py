@@ -3,14 +3,12 @@
 import io
 import functools
 from datetime import datetime
-
 from flask import (
     Flask, render_template, request, redirect,
     url_for, session, jsonify
 )
 from openpyxl import Workbook
 from openpyxl.styles import Font, Alignment, PatternFill
-
 import config
 import bale_client
 
@@ -20,10 +18,14 @@ app.config["SECRET_KEY"] = config.SECRET_KEY
 def has_course():
     return bool(session.get("course"))
 
-
 def has_professor():
     return has_course() and bool(session.get("professor"))
 
+def has_team_members():
+    return has_professor() and len(session.get("members", [])) >= 1
+
+def has_leader():
+    return has_team_members() and bool(session.get("leader_telegram_id"))
 
 def has_submitted():
     return bool(session.get("submitted"))
@@ -42,6 +44,8 @@ def require_step(check_fn, redirect_to):
 
 require_course = require_step(has_course, "course")
 require_professor = require_step(has_professor, "professor")
+require_team_members = require_step(has_team_members, "team")
+require_leader = require_step(has_leader, "leader")
 require_submitted = require_step(has_submitted, "welcome")
 
 
@@ -68,7 +72,7 @@ def course():
             return redirect(url_for("professor"))
 
     return render_template(
-        "course.html", value=value, error=error, step=1, total_steps=3
+        "course.html", value=value, error=error, step=1, total_steps=4
     )
 
 @app.route("/professor", methods=["GET", "POST"])
@@ -86,7 +90,7 @@ def professor():
             return redirect(url_for("team"))
 
     return render_template(
-        "professor.html", value=value, error=error, step=2, total_steps=3
+        "professor.html", value=value, error=error, step=2, total_steps=4
     )
 
 @app.route("/team")
@@ -98,7 +102,7 @@ def team():
         roles=config.TEAM_ROLES,
         course=session.get("course"),
         professor=session.get("professor"),
-        step=3, total_steps=3,
+        step=3, total_steps=4,
     )
 
 
@@ -163,7 +167,36 @@ def delete_member(member_id):
     session.modified = True
     return jsonify(ok=True, members=new_members)
 
-def build_xlsx(course_name, professor_name, members):
+@app.route("/leader", methods=["GET", "POST"])
+@require_team_members
+def leader():
+    error = None
+    value = session.get("leader_telegram_id", "")
+
+    if request.method == "POST":
+        value = (request.form.get("leader_telegram_id") or "").strip()
+        if not value:
+            error = "وارد کردن آیدی تلگرام سرپرست تیم الزامی است."
+        else:
+            session["leader_telegram_id"] = value
+            return redirect(url_for("summary"))
+
+    return render_template(
+        "leader.html", value=value, error=error, step=4, total_steps=4
+    )
+
+@app.route("/summary")
+@require_leader
+def summary():
+    return render_template(
+        "summary.html",
+        course=session.get("course"),
+        professor=session.get("professor"),
+        members=session.get("members", []),
+        leader_telegram_id=session.get("leader_telegram_id"),
+    )
+
+def build_xlsx(course_name, professor_name, members, leader_telegram_id):
     wb = Workbook()
     ws = wb.active
     ws.title = "ثبت TA"
@@ -178,12 +211,14 @@ def build_xlsx(course_name, professor_name, members):
     ws["B1"] = course_name
     ws["A2"] = "نام استاد"
     ws["B2"] = professor_name
-    ws["A3"] = "تاریخ ثبت"
-    ws["B3"] = datetime.now().strftime("%Y-%m-%d %H:%M")
-    for row in (1, 2, 3):
+    ws["A3"] = "آیدی تلگرام سرپرست تیم"
+    ws["B3"] = leader_telegram_id
+    ws["A4"] = "تاریخ ثبت"
+    ws["B4"] = datetime.now().strftime("%Y-%m-%d %H:%M")
+    for row in (1, 2, 3, 4):
         ws[f"A{row}"].font = bold
 
-    header_row = 5
+    header_row = 6
     headers = ["ردیف", "نام عضو تیم", "سمت"]
     for col_idx, h in enumerate(headers, start=1):
         cell = ws.cell(row=header_row, column=col_idx, value=h)
@@ -206,23 +241,30 @@ def build_xlsx(course_name, professor_name, members):
     buffer.seek(0)
     return buffer
 
+
 @app.route("/submit", methods=["POST"])
-@require_professor
+@require_leader
 def submit():
     course_name = session.get("course")
     professor_name = session.get("professor")
     members = session.get("members", [])
+    leader_telegram_id = session.get("leader_telegram_id")
 
     if not course_name or not professor_name:
         return jsonify(ok=False, error="اطلاعات درس یا استاد ناقص است."), 400
     if len(members) < 1:
         return jsonify(ok=False, error="حداقل باید یک عضو تیم ثبت شود."), 400
+    if not leader_telegram_id:
+        return jsonify(ok=False, error="آیدی تلگرام سرپرست تیم ثبت نشده است."), 400
 
-    caption = f"ثبت TA\nدرس: {course_name}\nاستاد: {professor_name}\nتعداد اعضا: {len(members)}"
+    caption = (
+        f"ثبت TA\nدرس: {course_name}\nاستاد: {professor_name}\n"
+        f"تعداد اعضا: {len(members)}\nآیدی تلگرام سرپرست: {leader_telegram_id}"
+    )
     filename = f"ta_registration_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
 
     try:
-        xlsx_buffer = build_xlsx(course_name, professor_name, members)
+        xlsx_buffer = build_xlsx(course_name, professor_name, members, leader_telegram_id)
         bale_client.send_document(xlsx_buffer, filename, caption)
     except Exception as exc:
         return jsonify(ok=False, error=f"ارسال اطلاعات با خطا مواجه شد: {exc}"), 502

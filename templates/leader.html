@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block title %}آیدی تلگرام سرپرست تیم{% endblock %}
+{% block content %}
+<main class="form-page">
+    <div class="form-card">
+        {% include "_stepper.html" %}
+
+        <h1 class="form-title">آیدی تلگرام سرپرست تیم</h1>
+        <p class="form-hint">این فیلد الزامی است. آیدی را همراه با @ یا آیدی عددی وارد کنید.</p>
+
+        <form method="POST" novalidate>
+            <div class="field {% if error %}field-error{% endif %}">
+                <label for="leader_telegram_id">آیدی تلگرام سرپرست</label>
+                <input
+                    type="text"
+                    id="leader_telegram_id"
+                    name="leader_telegram_id"
+                    value="{{ value }}"
+                    placeholder="مثال: @username"
+                    dir="ltr"
+                    autofocus
+                    required
+                >
+                {% if error %}<p class="error-text">{{ error }}</p>{% endif %}
+            </div>
+
+            <div class="form-actions">
+                <a href="{{ url_for('team') }}" class="btn btn-ghost">بازگشت</a>
+                <button type="submit" class="btn btn-primary">مرحله بعد ‹</button>
+            </div>
+        </form>
+    </div>
+</main>
+{% endblock %}

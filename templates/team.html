@@ -45,46 +45,15 @@
 
         <div class="form-actions">
             <a href="{{ url_for('professor') }}" class="btn btn-ghost">بازگشت</a>
-            <button type="button" class="btn btn-outline" id="open-summary-btn">مشاهده خلاصه</button>
+            <a href="{{ url_for('leader') }}" class="btn btn-primary" id="next-step-btn">مرحله بعد ‹</a>
         </div>
     </div>
 </main>
-
-<div class="modal-overlay" id="summary-modal" hidden>
-    <div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="summary-title">
-        <button type="button" class="modal-close" id="close-summary-btn" aria-label="بستن">×</button>
-        <h2 id="summary-title">خلاصه اطلاعات ثبتی</h2>
-
-        <dl class="summary-list">
-            <dt>نام درس</dt><dd>{{ course }}</dd>
-            <dt>نام استاد</dt><dd>{{ professor }}</dd>
-        </dl>
-
-        <p class="summary-members-title">اعضای تیم</p>
-        <div class="table-wrap table-wrap-modal">
-            <table class="member-table">
-                <thead>
-                    <tr><th class="col-index">#</th><th>نام عضو</th><th>سمت</th></tr>
-                </thead>
-                <tbody id="summary-tbody"></tbody>
-            </table>
-        </div>
-
-        <p class="error-text" id="submit-error" hidden></p>
-
-        <div class="form-actions">
-            <button type="button" class="btn btn-ghost" id="cancel-summary-btn">ویرایش مجدد</button>
-            <button type="button" class="btn btn-primary" id="final-submit-btn">ثبت نهایی و ارسال</button>
-        </div>
-    </div>
-</div>
 
 <script>
     window.__TEAM_DATA__ = {
         members: {{ members | tojson }},
         roles: {{ roles | tojson }},
-        submitUrl: "{{ url_for('submit') }}",
-        thanksUrl: "{{ url_for('thanks') }}",
         membersApiUrl: "{{ url_for('add_member') }}"
     };
 </script>
