@@ -214,13 +214,13 @@ def build_xlsx(course_name, professor_name, members):
 
 
 def send_to_telegram(file_buffer, filename, caption):
-    if "PUT-YOUR" in config.TELEGRAM_BOT_TOKEN or "PUT-YOUR" in str(config.TELEGRAM_CHAT_ID):
+    if "PUT-YOUR" in config.BALE_BOT_TOKEN or "PUT-YOUR" in str(config.BALE_CHAT_ID):
         raise RuntimeError(
-            "توکن بات یا شناسه چت تلگرام تنظیم نشده است. "
+            "توکن بات یا شناسه چت بله تنظیم نشده است. "
             "لطفاً فایل config.py را تکمیل کنید."
         )
 
-    url = f"https://api.telegram.org/bot{config.TELEGRAM_BOT_TOKEN}/sendDocument"
+    url = f"https://tapi.bale.ai/bot{config.BALE_BOT_TOKEN}/sendDocument"
     files = {
         "document": (
             filename,
@@ -228,11 +228,11 @@ def send_to_telegram(file_buffer, filename, caption):
             "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         )
     }
-    data = {"chat_id": config.TELEGRAM_CHAT_ID, "caption": caption}
+    data = {"chat_id": config.BALE_CHAT_ID, "caption": caption}
     resp = requests.post(url, data=data, files=files, timeout=20)
     payload = resp.json()
     if not payload.get("ok"):
-        raise RuntimeError(payload.get("description", "خطای نامشخص از سمت تلگرام"))
+        raise RuntimeError(payload.get("description", "خطای نامشخص از سمت بله"))
     return payload
 
 
