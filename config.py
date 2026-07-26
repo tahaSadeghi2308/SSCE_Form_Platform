@@ -10,10 +10,7 @@ BALE_MAX_MSG_PER_SEC = int(os.getenv("BALE_MAX_MSG_PER_SEC"))
 BALE_MAX_CONCURRENT_REQUESTS = int(os.getenv("BALE_MAX_CONCURRENT_REQUESTS"))
 
 TEAM_ROLES = [
-    "سرپرست تیم",
     "عضو تیم",
-    "مسئول فنی",
-    "مسئول مستندات",
 ]
 
 SITE_TITLE = "سامانه ثبت اطلاعات دستیار آموزشی (TA)"
