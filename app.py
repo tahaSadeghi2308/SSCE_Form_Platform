@@ -16,7 +16,7 @@ app = Flask(__name__)
 app.config["SECRET_KEY"] = config.SECRET_KEY
 
 def has_course():
-    return bool(session.get("course"))
+    return bool(session.get("course")) and bool(session.get("semester"))
 
 def has_professor():
     return has_course() and bool(session.get("professor"))
@@ -62,17 +62,27 @@ def welcome():
 def course():
     error = None
     value = session.get("course", "")
+    semester_value = session.get("semester", "")
 
     if request.method == "POST":
         value = (request.form.get("course_name") or "").strip()
+        semester_value = (request.form.get("semester") or "").strip()
+
         if not value:
             error = "وارد کردن نام درس الزامی است."
+        elif not semester_value or semester_value not in config.SEMESTERS:
+            error = "انتخاب ترم الزامی است."
         else:
             session["course"] = value
+            session["semester"] = semester_value
             return redirect(url_for("professor"))
 
     return render_template(
-        "course.html", value=value, error=error, step=1, total_steps=4
+        "course.html",
+        value=value,
+        semester_value=semester_value,
+        semesters=config.SEMESTERS,
+        error=error, step=1, total_steps=4,
     )
 
 @app.route("/professor", methods=["GET", "POST"])
@@ -191,12 +201,13 @@ def summary():
     return render_template(
         "summary.html",
         course=session.get("course"),
+        semester=session.get("semester"),
         professor=session.get("professor"),
         members=session.get("members", []),
         leader_telegram_id=session.get("leader_telegram_id"),
     )
 
-def build_xlsx(course_name, professor_name, members, leader_telegram_id):
+def build_xlsx(course_name, semester, professor_name, members, leader_telegram_id):
     wb = Workbook()
     ws = wb.active
     ws.title = "ثبت TA"
@@ -209,16 +220,18 @@ def build_xlsx(course_name, professor_name, members, leader_telegram_id):
 
     ws["A1"] = "نام درس"
     ws["B1"] = course_name
-    ws["A2"] = "نام استاد"
-    ws["B2"] = professor_name
-    ws["A3"] = "آیدی تلگرام سرپرست تیم"
-    ws["B3"] = leader_telegram_id
-    ws["A4"] = "تاریخ ثبت"
-    ws["B4"] = datetime.now().strftime("%Y-%m-%d %H:%M")
-    for row in (1, 2, 3, 4):
+    ws["A2"] = "ترم"
+    ws["B2"] = semester
+    ws["A3"] = "نام استاد"
+    ws["B3"] = professor_name
+    ws["A4"] = "آیدی تلگرام سرپرست تیم"
+    ws["B4"] = leader_telegram_id
+    ws["A5"] = "تاریخ ثبت"
+    ws["B5"] = datetime.now().strftime("%Y-%m-%d %H:%M")
+    for row in (1, 2, 3, 4, 5):
         ws[f"A{row}"].font = bold
 
-    header_row = 6
+    header_row = 7
     headers = ["ردیف", "نام عضو تیم", "سمت"]
     for col_idx, h in enumerate(headers, start=1):
         cell = ws.cell(row=header_row, column=col_idx, value=h)
@@ -241,30 +254,32 @@ def build_xlsx(course_name, professor_name, members, leader_telegram_id):
     buffer.seek(0)
     return buffer
 
-
 @app.route("/submit", methods=["POST"])
 @require_leader
 def submit():
     course_name = session.get("course")
+    semester = session.get("semester")
     professor_name = session.get("professor")
     members = session.get("members", [])
     leader_telegram_id = session.get("leader_telegram_id")
 
     if not course_name or not professor_name:
         return jsonify(ok=False, error="اطلاعات درس یا استاد ناقص است."), 400
+    if not semester:
+        return jsonify(ok=False, error="انتخاب ترم ناقص است."), 400
     if len(members) < 1:
         return jsonify(ok=False, error="حداقل باید یک عضو تیم ثبت شود."), 400
     if not leader_telegram_id:
         return jsonify(ok=False, error="آیدی تلگرام سرپرست تیم ثبت نشده است."), 400
 
     caption = (
-        f"ثبت TA\nدرس: {course_name}\nاستاد: {professor_name}\n"
+        f"ثبت TA\nدرس: {course_name}\nترم: {semester}\nاستاد: {professor_name}\n"
         f"تعداد اعضا: {len(members)}\nآیدی تلگرام سرپرست: {leader_telegram_id}"
     )
     filename = f"ta_registration_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
 
     try:
-        xlsx_buffer = build_xlsx(course_name, professor_name, members, leader_telegram_id)
+        xlsx_buffer = build_xlsx(course_name, semester, professor_name, members, leader_telegram_id)
         bale_client.send_document(xlsx_buffer, filename, caption)
     except Exception as exc:
         return jsonify(ok=False, error=f"ارسال اطلاعات با خطا مواجه شد: {exc}"), 502

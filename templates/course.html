@@ -4,12 +4,10 @@
 <main class="form-page">
     <div class="form-card">
         {% include "_stepper.html" %}
-
         <h1 class="form-title">نام درسی که TA آن بوده‌اید</h1>
         <p class="form-hint">این فیلد الزامی است.</p>
-
         <form method="POST" novalidate>
-            <div class="field {% if error %}field-error{% endif %}">
+            <div class="field {% if error and not semester_value %}field-error{% endif %}">
                 <label for="course_name">نام درس</label>
                 <input
                     type="text"
@@ -20,6 +18,15 @@
                     autofocus
                     required
                 >
+            </div>
+            <div class="field {% if error %}field-error{% endif %}">
+                <label for="semester">ترمی که TA این درس بوده‌اید</label>
+                <select id="semester" name="semester" required>
+                    <option value="" disabled {% if not semester_value %}selected{% endif %}>انتخاب کنید</option>
+                    {% for s in semesters %}
+                    <option value="{{ s }}" {% if s == semester_value %}selected{% endif %}>{{ s }}</option>
+                    {% endfor %}
+                </select>
                 {% if error %}<p class="error-text">{{ error }}</p>{% endif %}
             </div>
 
