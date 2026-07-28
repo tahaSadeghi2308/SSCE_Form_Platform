@@ -90,17 +90,22 @@ def course():
 def professor():
     error = None
     value = session.get("professor", "")
-
     if request.method == "POST":
         value = (request.form.get("professor_name") or "").strip()
-        if not value:
-            error = "وارد کردن نام استاد الزامی است."
+
+        if value not in config.PROFESSORS:
+            error = "لطفاً یکی از اساتید را انتخاب کنید."
         else:
             session["professor"] = value
             return redirect(url_for("team"))
 
     return render_template(
-        "professor.html", value=value, error=error, step=2, total_steps=4
+        "professor.html",
+        professors=config.PROFESSORS,
+        value=value,
+        error=error,
+        step=2,
+        total_steps=4,
     )
 
 @app.route("/team")
